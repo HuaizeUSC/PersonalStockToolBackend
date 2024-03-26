@@ -4,6 +4,7 @@ const stockController = require("../controller/stockController");
 
 router.get("/description", stockController.getCompanyDescription);
 router.get("/historicdata", stockController.getHistoricData);
+router.get("/historicdatahour", stockController.getHistoricHourlyData);
 router.get("/latestprice", stockController.getLatestPrice);
 router.get("/autocomplete", stockController.getAutocomplete);
 router.get("/news", stockController.getNews);

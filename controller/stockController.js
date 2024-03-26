@@ -54,6 +54,30 @@ const getHistoricData = async function (req, res) {
   }
 };
 
+const getHistoricHourlyData = async function (req, res) {
+  try {
+    const { ticker } = req.query;
+    if (!ticker) {
+      return res.status(400).json({ type: "error", message: "Please enter a valid ticker!" });
+    }
+    const apiUrlLatest = `${LATESTPRICE_URL}?symbol=${ticker.toUpperCase()}&token=${FINNHUB_API}`;
+    const responseLatest = await axios.get(apiUrlLatest);
+
+    const latestTimestamp = responseLatest.data.t;
+    const latestTradingDay = new Date(latestTimestamp * 1000);
+    const apiUrl = `${HISTORICDATA_URL}/${ticker.toUpperCase()}/range/1/hour/${utils.formatDateString(latestTradingDay)}/${utils.formatDateString(latestTradingDay)}?adjusted=true&sort=asc&apiKey=${POLYGON_API}`;
+    const response = await axios.get(apiUrl);
+    if (response.data.queryCount === 0) {
+      return res.status(404).json({ type: "error", message: "No data found for the latest trading day. Please enter a valid ticker!" });
+    }
+
+    return res.status(200).json({ type: "success", message: "Successfully retrieved hourly price information for the latest trading day", data: response.data });
+  } catch (error) {
+    console.error("Error fetching historic hourly data:", error);
+    return res.status(500).json({ type: "error", message: "Internal server error" });
+  }
+};
+
 const getLatestPrice = async function (req, res) {
   try {
     const { ticker } = req.query;
@@ -104,7 +128,13 @@ const getAutocomplete = async function (req, res) {
     if (Object.keys(response.data).length === 0) {
       return res.status(404).json({ type: "error", message: "No data found. Please enter a valid ticker!" });
     }
-    return res.status(200).json({ type: "success", message: "Successfully get the autocomplete information", data: response.data });
+    return res.status(200).json({
+      type: "success",
+      message: "Successfully get the autocomplete information",
+      data: response.data.result.filter((item) => {
+        return item.type === "Common Stock" && !item.symbol.includes(".");
+      }),
+    });
   } catch (error) {
     return res.status(500).json({ type: "error", message: "Internal server error" });
   }
@@ -181,6 +211,7 @@ const getEarnings = async function (req, res) {
 module.exports = {
   getCompanyDescription,
   getHistoricData,
+  getHistoricHourlyData,
   getLatestPrice,
   getNews,
   getAutocomplete,
