@@ -198,7 +198,8 @@
     "yocto-queue": "^0.1.0"
   },
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "test": "echo \"No tests available yet\""
   },
   "keywords": [],
   "author": "",
